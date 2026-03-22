@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Pet_Rescue.Data;
 
@@ -11,9 +12,11 @@ using Pet_Rescue.Data;
 namespace Pet_Rescue.Migrations
 {
     [DbContext(typeof(Pet_RescueDbContext))]
-    partial class Pet_RescueDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260321222054_Inicial")]
+    partial class Inicial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

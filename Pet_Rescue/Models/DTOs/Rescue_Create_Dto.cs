@@ -11,6 +11,6 @@ namespace Pet_Rescue.Models.DTOs
         public string Place { get; set; } = string.Empty;
 
         [Required]
-        public string State { get; set; } = string.Empty;
+        public string State { get; set; }
     }
 }

@@ -1,0 +1,11 @@
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Domain\bin\Debug\net10.0\Pet_Rescue.Domain.deps.json
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Domain\bin\Debug\net10.0\Pet_Rescue.Domain.dll
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Domain\bin\Debug\net10.0\Pet_Rescue.Domain.pdb
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Domain\obj\Debug\net10.0\Pet_Rescue.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Domain\obj\Debug\net10.0\Pet_Rescue.Domain.AssemblyInfoInputs.cache
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Domain\obj\Debug\net10.0\Pet_Rescue.Domain.AssemblyInfo.cs
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Domain\obj\Debug\net10.0\Pet_Rescue.Domain.csproj.CoreCompileInputs.cache
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Domain\obj\Debug\net10.0\Pet_Rescue.Domain.dll
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Domain\obj\Debug\net10.0\refint\Pet_Rescue.Domain.dll
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Domain\obj\Debug\net10.0\Pet_Rescue.Domain.pdb
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Domain\obj\Debug\net10.0\ref\Pet_Rescue.Domain.dll

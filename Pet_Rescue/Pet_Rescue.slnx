@@ -1,3 +1,5 @@
 <Solution>
+  <Project Path="../Pet_Rescue.Domain/Pet_Rescue.Domain.csproj" Id="69cf3b5c-99c2-4b6a-9e38-135f5094e65e" />
+  <Project Path="../Pet_Rescue.Infraestructure/Pet_Rescue.Infraestructure.csproj" Id="27947f6b-289d-4548-a044-4ef28c1fa3aa" />
   <Project Path="Pet_Rescue.csproj" />
 </Solution>

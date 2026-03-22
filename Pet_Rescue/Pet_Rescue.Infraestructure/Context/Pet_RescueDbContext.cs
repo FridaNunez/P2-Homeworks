@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Pet_Rescue.Models.Entities;
 
-namespace Pet_Rescue.Data
+namespace Pet_Rescue.Context.Infraestructure
 {
     public class Pet_RescueDbContext : DbContext
     {

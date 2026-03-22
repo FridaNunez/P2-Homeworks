@@ -1,0 +1,17 @@
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\bin\Debug\net10.0\Pet_Rescue.Infraestructure.deps.json
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\bin\Debug\net10.0\Pet_Rescue.Infraestructure.runtimeconfig.json
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\bin\Debug\net10.0\Pet_Rescue.Infraestructure.dll
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\bin\Debug\net10.0\Pet_Rescue.Infraestructure.pdb
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\bin\Debug\net10.0\Pet_Rescue.Domain.dll
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\bin\Debug\net10.0\Pet_Rescue.Domain.pdb
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\obj\Debug\net10.0\Pet_Rescue.Infraestructure.csproj.AssemblyReference.cache
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\obj\Debug\net10.0\Pet_Rescue.Infraestructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\obj\Debug\net10.0\Pet_Rescue.Infraestructure.AssemblyInfoInputs.cache
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\obj\Debug\net10.0\Pet_Rescue.Infraestructure.AssemblyInfo.cs
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\obj\Debug\net10.0\Pet_Rescue.Infraestructure.csproj.CoreCompileInputs.cache
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\obj\Debug\net10.0\Pet_Resc.F37AA4E4.Up2Date
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\obj\Debug\net10.0\Pet_Rescue.Infraestructure.dll
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\obj\Debug\net10.0\refint\Pet_Rescue.Infraestructure.dll
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\obj\Debug\net10.0\Pet_Rescue.Infraestructure.pdb
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\obj\Debug\net10.0\Pet_Rescue.Infraestructure.genruntimeconfig.cache
+C:\Dev\Homework#2\Homework#2\Pet_Rescue.Infraestructure\obj\Debug\net10.0\ref\Pet_Rescue.Infraestructure.dll

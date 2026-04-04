@@ -1,0 +1,6 @@
+@Skillnet_HostAddress = http://localhost:5262
+
+GET {{Skillnet_HostAddress}}/Skillnet.API/
+Accept: application/json
+
+###

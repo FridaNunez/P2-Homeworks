@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="../SkillNet.Models/SkillNet.Models.csproj" />
+  <Project Path="../SkillNet.Repositories/SkillNet.Repositories.csproj" />
+  <Project Path="Skillnet.API.csproj" />
+</Solution>

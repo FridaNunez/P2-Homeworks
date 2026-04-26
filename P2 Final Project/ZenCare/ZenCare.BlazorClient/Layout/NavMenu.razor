@@ -1,0 +1,52 @@
+﻿@inject NavigationManager Navigation
+
+<nav class="zen-sidebar d-flex flex-column">
+
+    <div class="zen-sidebar-brand">
+        <div style="font-size:2rem">🌿</div>
+        <h4>ZenCare</h4>
+        <small>Alternative Therapy Center</small>
+    </div>
+
+    <div class="mt-2">
+        <a class="zen-nav-link @IsActive("/")" href="/">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a class="zen-nav-link @IsActive("/patients")" href="/patients">
+            <i class="bi bi-people"></i> Patients
+        </a>
+        <a class="zen-nav-link @IsActive("/specialists")" href="/specialists">
+            <i class="bi bi-person-badge"></i> Specialists
+        </a>
+        <a class="zen-nav-link @IsActive("/therapies")" href="/therapies">
+            <i class="bi bi-heart-pulse"></i> Therapies
+        </a>
+        <a class="zen-nav-link @IsActive("/appointments")" href="/appointments">
+            <i class="bi bi-calendar-check"></i> Appointments
+        </a>
+        <a class="zen-nav-link @IsActive("/schedule")" href="/schedule">
+            <i class="bi bi-calendar-week"></i> Schedule
+        </a>
+    </div>
+
+    <div class="mt-auto p-3"
+         style="color:rgba(255,255,255,.4);font-size:.75rem;">
+        <hr style="border-color:rgba(255,255,255,.2)" />
+        ZenCare v1.0 &copy; 2024
+    </div>
+</nav>
+
+@code {
+    private string IsActive(string href)
+    {
+        var path = "/" + Navigation.Uri
+            .Substring(Navigation.BaseUri.Length)
+            .TrimStart('/');
+
+        if (href == "/")
+            return path == "/" ? "active" : "";
+
+        return path.StartsWith(href, StringComparison.OrdinalIgnoreCase)
+            ? "active" : "";
+    }
+}

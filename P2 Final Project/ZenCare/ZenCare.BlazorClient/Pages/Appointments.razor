@@ -1,0 +1,429 @@
+﻿@page "/appointments"
+@inject HttpClient Http
+@using ZenCare.BlazorClient.Models
+@using System.Net.Http.Json
+
+<PageTitle>ZenCare – Appointments</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>
+        <i class="bi bi-calendar-check me-2" style="color:var(--zen-primary)"></i>
+        Appointments
+    </h3>
+    <button class="btn btn-zen" @onclick="OpenCreate">
+        <i class="bi bi-plus-circle me-1"></i> New Appointment
+    </button>
+</div>
+
+<div class="row g-2 mb-3">
+    <div class="col-md-3">
+        <input type="date" class="form-control"
+               @bind="_filterDate" @bind:format="yyyy-MM-dd"
+               @bind:event="onchange" />
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" @bind="_filterStatus">
+            <option value="">All statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-outline-secondary w-100" @onclick="Load">
+            <i class="bi bi-search"></i> Filter
+        </button>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border" style="color:var(--zen-primary)"></div>
+    </div>
+}
+else
+{
+    <div class="zen-card card">
+        <div class="zen-card-header">Appointments (@Filtered.Count())</div>
+        <div class="card-body p-0">
+            <table class="table zen-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Date &amp; Time</th>
+                        <th>Patient</th>
+                        <th>Specialist</th>
+                        <th>Therapy</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Filtered)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@a.ScheduledAt.ToString("dd/MM/yyyy")</strong>
+                                <br />
+                                <small class="text-muted">
+                                    @a.ScheduledAt.ToString("HH:mm")
+                                </small>
+                            </td>
+                            <td>@a.PatientName</td>
+                            <td>@a.SpecialistName</td>
+                            <td>
+                                @a.TherapyName
+                                <br />
+                                <small class="text-muted">@a.TherapyDuration min</small>
+                            </td>
+                            <td>$@a.TherapyPrice.ToString("F2")</td>
+                            <td>
+                                <span class="badge @Badge(a.StatusName)">
+                                    @a.StatusName
+                                </span>
+                            </td>
+                            <td>
+                                @if (a.StatusName == "Pending")
+                                {
+                                    <button class="btn btn-sm btn-outline-primary me-1"
+                                            title="Confirm"
+                                            @onclick="() => ChangeStatus(a.Id, 1, null)">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                }
+                                @if (a.StatusName == "Confirmed")
+                                {
+                                    <button class="btn btn-sm btn-outline-success me-1"
+                                            title="Complete"
+                                            @onclick="() => OpenComplete(a)">
+                                        <i class="bi bi-check2-all"></i>
+                                    </button>
+                                }
+                                @if (a.StatusName != "Cancelled" &&
+                                     a.StatusName != "Completed")
+                                {
+                                    <button class="btn btn-sm btn-outline-danger me-1"
+                                            title="Cancel"
+                                            @onclick="() => ChangeStatus(a.Id, 3, null)">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                }
+                                @if (a.StatusName == "Completed")
+                                {
+                                    <button class="btn btn-sm btn-outline-info"
+                                            title="Notes"
+                                            @onclick="() => OpenNotes(a)">
+                                        <i class="bi bi-journal-text"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (_showCreate)
+{
+    <div class="modal fade show d-block" style="background:rgba(0,0,0,.5)">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header"
+                     style="background:var(--zen-primary);color:white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-calendar-plus me-2"></i>New Appointment
+                    </h5>
+                    <button class="btn-close btn-close-white"
+                            @onclick="() => _showCreate = false"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(_createErr))
+                    {
+                        <div class="alert alert-danger">@_createErr</div>
+                    }
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Patient *</label>
+                            <select class="form-select" @bind="_newA.PatientId">
+                                <option value="">Select patient…</option>
+                                @foreach (var p in _patients)
+                                {
+                                    <option value="@p.Id">@p.FullName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Specialist *</label>
+                            <select class="form-select" @bind="_newA.SpecialistId">
+                                <option value="">Select specialist…</option>
+                                @foreach (var s in _specialists)
+                                {
+                                    <option value="@s.Id">@s.FullName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Therapy *</label>
+                            <select class="form-select" @bind="_newA.TherapyId">
+                                <option value="">Select therapy…</option>
+                                @foreach (var t in _therapies)
+                                {
+                                    <option value="@t.Id">@t.Name ($@t.Price)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Date &amp; Time *</label>
+                            <input class="form-control" type="datetime-local"
+                                   @bind="_newA.ScheduledAt"
+                                   @bind:format="yyyy-MM-ddTHH:mm" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Reason for visit</label>
+                            <textarea class="form-control" rows="3"
+                                      @bind="_newA.ConsultationReason"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary"
+                            @onclick="() => _showCreate = false">
+                        Cancel
+                    </button>
+                    <button class="btn btn-zen" @onclick="Create">Schedule</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showComplete && _selected != null)
+{
+    <div class="modal fade show d-block" style="background:rgba(0,0,0,.5)">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background:#198754;color:white">
+                    <h5 class="modal-title">Complete Appointment</h5>
+                    <button class="btn-close btn-close-white"
+                            @onclick="() => _showComplete = false"></button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        Patient: <strong>@_selected.PatientName</strong><br />
+                        Therapy: <strong>@_selected.TherapyName</strong>
+                    </p>
+                    <label class="form-label">Session summary *</label>
+                    <textarea class="form-control" rows="4" @bind="_summary"
+                              placeholder="Describe what happened…"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary"
+                            @onclick="() => _showComplete = false">
+                        Cancel
+                    </button>
+                    <button class="btn btn-success" @onclick="Complete">
+                        Mark as Completed
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showNotes && _selected != null)
+{
+    <div class="modal fade show d-block" style="background:rgba(0,0,0,.5)">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header"
+                     style="background:var(--zen-primary);color:white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-journal-text me-2"></i>Session Notes
+                    </h5>
+                    <button class="btn-close btn-close-white"
+                            @onclick="() => _showNotes = false"></button>
+                </div>
+                <div class="modal-body">
+                    @foreach (var n in _notes)
+                    {
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <p class="mb-1">@n.Content</p>
+                                @if (!string.IsNullOrEmpty(n.Recommendations))
+                                {
+                                    <p class="small text-muted mb-1">
+                                        <strong>Recommendations:</strong>
+                                        @n.Recommendations
+                                    </p>
+                                }
+                                <small class="text-muted">
+                                    By: @n.RecordedBy |
+                                    @n.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </small>
+                            </div>
+                        </div>
+                    }
+                    <hr />
+                    <h6>Add Note</h6>
+                    <div class="mb-2">
+                        <textarea class="form-control" rows="3"
+                                  @bind="_noteContent"
+                                  placeholder="Note content…"></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <input class="form-control" @bind="_noteBy"
+                               placeholder="Recorded by…" />
+                    </div>
+                    <div class="mb-2">
+                        <input class="form-control" @bind="_noteRec"
+                               placeholder="Recommendations (optional)" />
+                    </div>
+                    <button class="btn btn-zen btn-sm" @onclick="AddNote">
+                        <i class="bi bi-plus-circle me-1"></i>Add Note
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<AppointmentModel> _appts = new();
+    private List<PatientModel> _patients = new();
+    private List<SpecialistModel> _specialists = new();
+    private List<TherapyModel> _therapies = new();
+    private List<SessionNoteModel> _notes = new();
+
+    private bool _loading = true, _showCreate = false,
+                   _showComplete = false, _showNotes = false;
+    private string _createErr = string.Empty, _filterStatus = string.Empty;
+    private string _summary = string.Empty;
+    private string _noteContent = string.Empty, _noteBy = string.Empty,
+                   _noteRec = string.Empty;
+    private DateTime? _filterDate;
+    private AppointmentModel? _selected;
+    private AppointmentCreateModel _newA = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCatalogues();
+        await Load();
+    }
+
+    private async Task LoadCatalogues()
+    {
+        _patients = await Http.GetFromJsonAsync<List<PatientModel>>(
+            "api/patients") ?? new();
+        _specialists = await Http.GetFromJsonAsync<List<SpecialistModel>>(
+            "api/specialists") ?? new();
+        _therapies = await Http.GetFromJsonAsync<List<TherapyModel>>(
+            "api/therapies") ?? new();
+    }
+
+    private async Task Load()
+    {
+        _loading = true;
+        _appts = await Http.GetFromJsonAsync<List<AppointmentModel>>(
+            "api/appointments") ?? new();
+        _loading = false;
+    }
+
+    private IEnumerable<AppointmentModel> Filtered
+    {
+        get
+        {
+            var q = _appts.AsEnumerable();
+            if (!string.IsNullOrEmpty(_filterStatus))
+                q = q.Where(a => a.StatusName == _filterStatus);
+            if (_filterDate.HasValue)
+                q = q.Where(a => a.ScheduledAt.Date == _filterDate.Value.Date);
+            return q.OrderByDescending(a => a.ScheduledAt);
+        }
+    }
+
+    private void OpenCreate()
+    {
+        _newA = new() { ScheduledAt = DateTime.Now.AddDays(1) };
+        _createErr = string.Empty;
+        _showCreate = true;
+    }
+
+    private async Task Create()
+    {
+        if (_newA.PatientId == Guid.Empty ||
+            _newA.SpecialistId == Guid.Empty ||
+            _newA.TherapyId == Guid.Empty)
+        { _createErr = "Patient, Specialist and Therapy are required."; return; }
+
+        var resp = await Http.PostAsJsonAsync("api/appointments", _newA);
+        if (resp.IsSuccessStatusCode) { _showCreate = false; await Load(); }
+        else _createErr = "Could not schedule. Check for conflicts.";
+    }
+
+    private async Task ChangeStatus(Guid id, int status, string? summary)
+    {
+        var dto = new ChangeStatusModel
+        {
+            AppointmentId = id,
+            NewStatus = status,
+            SessionSummary = summary
+        };
+        await Http.PatchAsJsonAsync("api/appointments/status", dto);
+        await Load();
+    }
+
+    private void OpenComplete(AppointmentModel a)
+    {
+        _selected = a;
+        _summary = string.Empty;
+        _showComplete = true;
+    }
+
+    private async Task Complete()
+    {
+        if (_selected == null) return;
+        await ChangeStatus(_selected.Id, 2, _summary);
+        _showComplete = false;
+    }
+
+    private async Task OpenNotes(AppointmentModel a)
+    {
+        _selected = a;
+        _notes = await Http.GetFromJsonAsync<List<SessionNoteModel>>(
+            $"api/sessionnotes/appointment/{a.Id}") ?? new();
+        _noteContent = _noteBy = _noteRec = string.Empty;
+        _showNotes = true;
+    }
+
+    private async Task AddNote()
+    {
+        if (_selected == null || string.IsNullOrWhiteSpace(_noteContent)) return;
+        var dto = new SessionNoteCreateModel
+        {
+            AppointmentId = _selected.Id,
+            Content = _noteContent,
+            RecordedBy = _noteBy,
+            Recommendations = _noteRec
+        };
+        var resp = await Http.PostAsJsonAsync("api/sessionnotes", dto);
+        if (resp.IsSuccessStatusCode)
+        {
+            _noteContent = _noteBy = _noteRec = string.Empty;
+            _notes = await Http.GetFromJsonAsync<List<SessionNoteModel>>(
+                $"api/sessionnotes/appointment/{_selected.Id}") ?? new();
+        }
+    }
+
+    private static string Badge(string s) => s switch
+    {
+        "Pending" => "badge-pending",
+        "Confirmed" => "badge-confirmed",
+        "Completed" => "badge-completed",
+        "Cancelled" => "badge-cancelled",
+        _ => "bg-secondary"
+    };
+}

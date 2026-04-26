@@ -1,0 +1,303 @@
+﻿@page "/patients"
+@inject HttpClient Http
+@using ZenCare.BlazorClient.Models
+@using System.Net.Http.Json
+
+<PageTitle>ZenCare – Patients</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="bi bi-people me-2" style="color:var(--zen-primary)"></i>Patients</h3>
+    <button class="btn btn-zen" @onclick="OpenCreate">
+        <i class="bi bi-person-plus me-1"></i> New Patient
+    </button>
+</div>
+
+@if (_loading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border" style="color:var(--zen-primary)"></div>
+    </div>
+}
+else
+{
+    <div class="mb-3">
+        <input class="form-control" placeholder="Search..."
+               @bind="_search" @bind:event="oninput" />
+    </div>
+
+    <div class="zen-card card">
+        <div class="zen-card-header">Patient List (@Filtered.Count())</div>
+        <div class="card-body p-0">
+            <table class="table zen-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Age</th>
+                        <th>Appointments</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Filtered)
+                    {
+                        <tr>
+                            <td><strong>@p.FullName</strong></td>
+                            <td>@p.Email</td>
+                            <td>@p.Phone</td>
+                            <td>@p.Age yrs</td>
+                            <td>
+                                <span class="badge"
+                                      style="background:var(--zen-primary)">
+                                    @p.TotalAppointments
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-1"
+                                        @onclick="() => ViewHistory(p)">
+                                    <i class="bi bi-clock-history"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary me-1"
+                                        @onclick="() => OpenEdit(p)">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger"
+                                        @onclick="() => Delete(p.Id)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (_showModal)
+{
+    <div class="modal fade show d-block" style="background:rgba(0,0,0,.5)">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header"
+                     style="background:var(--zen-primary);color:white">
+                    <h5 class="modal-title">
+                        @(_editing ? "Edit Patient" : "New Patient")
+                    </h5>
+                    <button class="btn-close btn-close-white"
+                            @onclick="() => _showModal = false"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(_err))
+                    {
+                        <div class="alert alert-danger">@_err</div>
+                    }
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name *</label>
+                            <input class="form-control" @bind="_form.FirstName" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name *</label>
+                            <input class="form-control" @bind="_form.LastName" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email *</label>
+                            <input class="form-control" type="email" @bind="_form.Email" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input class="form-control" @bind="_form.Phone" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Date of Birth</label>
+                            <input class="form-control" type="date"
+                                   @bind="_form.DateOfBirth"
+                                   @bind:format="yyyy-MM-dd" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Medical Notes</label>
+                            <textarea class="form-control" rows="3"
+                                      @bind="_form.MedicalNotes"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary"
+                            @onclick="() => _showModal = false">
+                        Cancel
+                    </button>
+                    <button class="btn btn-zen" @onclick="Save" disabled="@_saving">
+                        @if (_saving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showHistory && _selected != null)
+{
+    <div class="modal fade show d-block" style="background:rgba(0,0,0,.5)">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header"
+                     style="background:var(--zen-primary);color:white">
+                    <h5 class="modal-title">History: @_selected.FullName</h5>
+                    <button class="btn-close btn-close-white"
+                            @onclick="() => _showHistory = false"></button>
+                </div>
+                <div class="modal-body">
+                    @if (_history.Any())
+                    {
+                        <table class="table zen-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Therapy</th>
+                                    <th>Specialist</th>
+                                    <th>Status</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var a in _history)
+                                {
+                                    <tr>
+                                        <td>@a.ScheduledAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>@a.TherapyName</td>
+                                        <td>@a.SpecialistName</td>
+                                        <td>
+                                            <span class="badge @Badge(a.StatusName)">
+                                                @a.StatusName
+                                            </span>
+                                        </td>
+                                        <td>$@a.TherapyPrice.ToString("F2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-center text-muted py-3">
+                            No appointments on record.
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<PatientModel> _patients = new();
+    private List<AppointmentModel> _history = new();
+    private PatientModel? _selected;
+
+    private bool _loading = true, _showModal = false,
+                   _showHistory = false, _editing = false, _saving = false;
+    private string _search = string.Empty, _err = string.Empty;
+    private Guid _editId;
+    private PatientCreateModel _form = new();
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        _loading = true;
+        _patients = await Http.GetFromJsonAsync<List<PatientModel>>(
+            "api/patients") ?? new();
+        _loading = false;
+    }
+
+    private IEnumerable<PatientModel> Filtered =>
+        string.IsNullOrWhiteSpace(_search)
+            ? _patients
+            : _patients.Where(p =>
+                p.FullName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                p.Email.Contains(_search, StringComparison.OrdinalIgnoreCase));
+
+    private void OpenCreate()
+    {
+        _form = new(); _editing = false;
+        _err = string.Empty; _showModal = true;
+    }
+
+    private void OpenEdit(PatientModel p)
+    {
+        _editId = p.Id;
+        _form = new()
+        {
+            FirstName = p.FirstName,
+            LastName = p.LastName,
+            Email = p.Email,
+            Phone = p.Phone,
+            DateOfBirth = p.DateOfBirth,
+            MedicalNotes = p.MedicalNotes
+        };
+        _editing = true; _err = string.Empty; _showModal = true;
+    }
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(_form.FirstName) ||
+            string.IsNullOrWhiteSpace(_form.LastName) ||
+            string.IsNullOrWhiteSpace(_form.Email))
+        { _err = "First name, last name and email are required."; return; }
+
+        _saving = true; _err = string.Empty;
+        HttpResponseMessage resp;
+
+        if (_editing)
+        {
+            var upd = new
+            {
+                Id = _editId,
+                _form.FirstName,
+                _form.LastName,
+                _form.Email,
+                _form.Phone,
+                _form.DateOfBirth,
+                _form.MedicalNotes
+            };
+            resp = await Http.PutAsJsonAsync($"api/patients/{_editId}", upd);
+        }
+        else
+        {
+            resp = await Http.PostAsJsonAsync("api/patients", _form);
+        }
+
+        if (resp.IsSuccessStatusCode) { _showModal = false; await Load(); }
+        else _err = "Error saving. Check the data.";
+        _saving = false;
+    }
+
+    private async Task Delete(Guid id)
+    {
+        await Http.DeleteAsync($"api/patients/{id}");
+        await Load();
+    }
+
+    private async Task ViewHistory(PatientModel p)
+    {
+        _selected = p;
+        _history = await Http.GetFromJsonAsync<List<AppointmentModel>>(
+            $"api/patients/{p.Id}/history") ?? new();
+        _showHistory = true;
+    }
+
+    private static string Badge(string s) => s switch
+    {
+        "Pending" => "badge-pending",
+        "Confirmed" => "badge-confirmed",
+        "Completed" => "badge-completed",
+        "Cancelled" => "badge-cancelled",
+        _ => "bg-secondary"
+    };
+}

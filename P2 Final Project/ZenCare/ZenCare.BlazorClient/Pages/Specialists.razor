@@ -1,0 +1,222 @@
+﻿@page "/specialists"
+@inject HttpClient Http
+@using ZenCare.BlazorClient.Models
+@using System.Net.Http.Json
+
+<PageTitle>ZenCare – Specialists</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>
+        <i class="bi bi-person-badge me-2" style="color:var(--zen-primary)"></i>
+        Specialists
+    </h3>
+    <button class="btn btn-zen" @onclick="OpenModal">
+        <i class="bi bi-person-plus me-1"></i> New Specialist
+    </button>
+</div>
+
+@if (_loading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border" style="color:var(--zen-primary)"></div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var s in _specialists)
+        {
+            <div class="col-md-4">
+                <div class="zen-card card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle d-flex align-items-center
+                                justify-content-center me-3"
+                                 style="width:50px;height:50px;
+                                background:var(--zen-primary);
+                                color:white;font-size:1.2rem;font-weight:700">
+                                @s.FirstName.FirstOrDefault()@s.LastName.FirstOrDefault()
+                            </div>
+                            <div>
+                                <h6 class="mb-0">@s.FullName</h6>
+                                <small class="text-muted">License: @s.LicenseNumber</small>
+                            </div>
+                        </div>
+                        <p class="small text-muted mb-1">
+                            <i class="bi bi-envelope me-1"></i>@s.Email
+                        </p>
+                        <p class="small text-muted mb-1">
+                            <i class="bi bi-telephone me-1"></i>@s.Phone
+                        </p>
+                        @if (!string.IsNullOrEmpty(s.SpecialtiesStr))
+                        {
+                            <p class="small mb-2">
+                                <i class="bi bi-tag me-1"
+                                   style="color:var(--zen-primary)"></i>
+                                @s.SpecialtiesStr
+                            </p>
+                        }
+                        @if (!string.IsNullOrEmpty(s.Bio))
+                        {
+                            <p class="small text-muted">
+                                @(s.Bio.Length > 90 ? s.Bio[..90] + "…" : s.Bio)
+                            </p>
+                        }
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <button class="btn btn-sm btn-outline-secondary me-1"
+                                @onclick="() => OpenEdit(s)">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger"
+                                @onclick="() => Delete(s.Id)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@if (_showModal)
+{
+    <div class="modal fade show d-block" style="background:rgba(0,0,0,.5)">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header"
+                     style="background:var(--zen-primary);color:white">
+                    <h5 class="modal-title">
+                        @(_editing ? "Edit Specialist" : "New Specialist")
+                    </h5>
+                    <button class="btn-close btn-close-white"
+                            @onclick="() => _showModal = false"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(_err))
+                    {
+                        <div class="alert alert-danger">@_err</div>
+                    }
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name *</label>
+                            <input class="form-control" @bind="_form.FirstName" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name *</label>
+                            <input class="form-control" @bind="_form.LastName" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input class="form-control" type="email"
+                                   @bind="_form.Email" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input class="form-control" @bind="_form.Phone" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">License Number *</label>
+                            <input class="form-control" @bind="_form.LicenseNumber" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Specialties (comma-separated)</label>
+                            <input class="form-control"
+                                   placeholder="e.g. Massage, Acupuncture"
+                                   @bind="_form.SpecialtiesStr" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Biography</label>
+                            <textarea class="form-control" rows="3"
+                                      @bind="_form.Bio"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary"
+                            @onclick="() => _showModal = false">
+                        Cancel
+                    </button>
+                    <button class="btn btn-zen" @onclick="Save">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<SpecialistModel> _specialists = new();
+    private bool _loading = true, _showModal = false, _editing = false;
+    private string _err = string.Empty;
+    private Guid _editId;
+    private SpecialistCreateModel _form = new();
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        _loading = true;
+        _specialists = await Http.GetFromJsonAsync<List<SpecialistModel>>(
+            "api/specialists") ?? new();
+        _loading = false;
+    }
+
+    private void OpenModal()
+    {
+        _form = new(); _editing = false;
+        _err = string.Empty; _showModal = true;
+    }
+
+    private void OpenEdit(SpecialistModel s)
+    {
+        _editId = s.Id;
+        _form = new()
+        {
+            FirstName = s.FirstName,
+            LastName = s.LastName,
+            Email = s.Email,
+            Phone = s.Phone,
+            LicenseNumber = s.LicenseNumber,
+            Bio = s.Bio,
+            SpecialtiesStr = s.SpecialtiesStr
+        };
+        _editing = true; _err = string.Empty; _showModal = true;
+    }
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(_form.FirstName) ||
+            string.IsNullOrWhiteSpace(_form.LicenseNumber))
+        { _err = "First name and license number are required."; return; }
+
+        HttpResponseMessage resp;
+        if (_editing)
+        {
+            var upd = new
+            {
+                Id = _editId,
+                _form.FirstName,
+                _form.LastName,
+                _form.Email,
+                _form.Phone,
+                _form.LicenseNumber,
+                _form.Bio,
+                _form.SpecialtiesStr
+            };
+            resp = await Http.PutAsJsonAsync($"api/specialists/{_editId}", upd);
+        }
+        else
+        {
+            resp = await Http.PostAsJsonAsync("api/specialists", _form);
+        }
+
+        if (resp.IsSuccessStatusCode) { _showModal = false; await Load(); }
+        else _err = "Error saving. Verify the data.";
+    }
+
+    private async Task Delete(Guid id)
+    {
+        await Http.DeleteAsync($"api/specialists/{id}");
+        await Load();
+    }
+}

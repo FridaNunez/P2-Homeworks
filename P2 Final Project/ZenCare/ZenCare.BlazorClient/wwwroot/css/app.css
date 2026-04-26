@@ -1,0 +1,177 @@
+:root {
+    --zen-primary: #2e7d6b;
+    --zen-secondary: #4caf9a;
+    --zen-accent: #f5c842;
+    --zen-bg: #f4f9f6;
+    --zen-sidebar: #1b4d3e;
+    --zen-text-light: #e8f5e9;
+}
+
+body {
+    background-color: var(--zen-bg);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.zen-sidebar {
+    background: var(--zen-sidebar);
+    min-height: 100vh;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+}
+
+.zen-sidebar-brand {
+    background: var(--zen-primary);
+    padding: 20px 15px;
+    text-align: center;
+    color: white;
+}
+
+    .zen-sidebar-brand h4 {
+        margin: 0;
+        font-weight: 700;
+        letter-spacing: 2px;
+    }
+
+    .zen-sidebar-brand small {
+        opacity: .8;
+        font-size: .75rem;
+    }
+
+.zen-nav-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: var(--zen-text-light);
+    text-decoration: none;
+    transition: background .2s;
+    border-left: 3px solid transparent;
+}
+
+    .zen-nav-link:hover {
+        background: rgba(255,255,255,.1);
+        color: white;
+        border-left-color: var(--zen-accent);
+    }
+
+    .zen-nav-link.active {
+        background: var(--zen-primary);
+        border-left-color: var(--zen-accent);
+        color: white;
+        font-weight: 600;
+    }
+
+    .zen-nav-link i {
+        margin-right: 12px;
+        font-size: 1.1rem;
+        width: 20px;
+    }
+
+.zen-content {
+    margin-left: 250px;
+    padding: 25px;
+}
+
+.zen-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0,0,0,.08);
+    transition: transform .2s;
+}
+
+    .zen-card:hover {
+        transform: translateY(-2px);
+    }
+
+.zen-card-header {
+    background: var(--zen-primary);
+    color: white;
+    border-radius: 12px 12px 0 0 !important;
+    padding: 15px 20px;
+    font-weight: 600;
+}
+
+.stat-card {
+    border-radius: 12px;
+    padding: 20px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+    .stat-card .stat-icon {
+        font-size: 3rem;
+        opacity: .3;
+        position: absolute;
+        right: 15px;
+        top: 10px;
+    }
+
+    .stat-card h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .stat-card p {
+        margin: 5px 0 0;
+        opacity: .9;
+    }
+
+.badge-pending {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.badge-confirmed {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+.badge-completed {
+    background-color: #198754;
+    color: #fff;
+}
+
+.badge-cancelled {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.btn-zen {
+    background: var(--zen-primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    transition: background .2s;
+}
+
+    .btn-zen:hover {
+        background: var(--zen-secondary);
+        color: white;
+    }
+
+.zen-table thead {
+    background: var(--zen-primary);
+    color: white;
+}
+
+.zen-table tbody tr:hover {
+    background: rgba(46,125,107,.05);
+}
+
+@media (max-width:768px) {
+    .zen-sidebar {
+        width: 100%;
+        min-height: auto;
+        position: relative;
+    }
+
+    .zen-content {
+        margin-left: 0;
+    }
+}

@@ -1,0 +1,211 @@
+﻿@page "/therapies"
+@inject HttpClient Http
+@using ZenCare.BlazorClient.Models
+@using System.Net.Http.Json
+
+<PageTitle>ZenCare – Therapies</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>
+        <i class="bi bi-heart-pulse me-2" style="color:var(--zen-primary)"></i>
+        Therapy Catalogue
+    </h3>
+    <button class="btn btn-zen" @onclick="OpenModal">
+        <i class="bi bi-plus-circle me-1"></i> New Therapy
+    </button>
+</div>
+
+@if (!_loading)
+{
+    <div class="mb-3 d-flex gap-2 flex-wrap">
+        @foreach (var cat in _cats)
+        {
+            <button class="btn btn-sm @(_filter == cat ? "btn-zen" : "btn-outline-secondary")"
+                    @onclick="() => _filter = cat">
+                @cat
+            </button>
+        }
+    </div>
+
+    <div class="row g-3">
+        @foreach (var t in Filtered)
+        {
+            <div class="col-md-4">
+                <div class="zen-card card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="badge"
+                                  style="background:var(--zen-secondary)">
+                                @t.Category
+                            </span>
+                            <span class="text-muted small">@t.DurationMinutes min</span>
+                        </div>
+                        <h5>@t.Name</h5>
+                        <p class="text-muted small">@t.Description</p>
+                        <h4 style="color:var(--zen-primary)">
+                            $@t.Price.ToString("F2")
+                        </h4>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <button class="btn btn-sm btn-outline-secondary me-1"
+                                @onclick="() => OpenEdit(t)">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger"
+                                @onclick="() => Delete(t.Id)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-5">
+        <div class="spinner-border" style="color:var(--zen-primary)"></div>
+    </div>
+}
+
+@if (_showModal)
+{
+    <div class="modal fade show d-block" style="background:rgba(0,0,0,.5)">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"
+                     style="background:var(--zen-primary);color:white">
+                    <h5 class="modal-title">
+                        @(_editing ? "Edit Therapy" : "New Therapy")
+                    </h5>
+                    <button class="btn-close btn-close-white"
+                            @onclick="() => _showModal = false"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(_err))
+                    {
+                        <div class="alert alert-danger">@_err</div>
+                    }
+                    <div class="mb-3">
+                        <label class="form-label">Name *</label>
+                        <input class="form-control" @bind="_form.Name" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" rows="3"
+                                  @bind="_form.Description"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Duration (min) *</label>
+                            <input class="form-control" type="number"
+                                   @bind="_form.DurationMinutes" />
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Price *</label>
+                            <input class="form-control" type="number"
+                                   step="0.01" @bind="_form.Price" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" @bind="_form.Category">
+                            <option value="">Select…</option>
+                            <option>Relaxation</option>
+                            <option>Energetic</option>
+                            <option>Mental</option>
+                            <option>Physical</option>
+                            <option>Spiritual</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary"
+                            @onclick="() => _showModal = false">
+                        Cancel
+                    </button>
+                    <button class="btn btn-zen" @onclick="Save">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<TherapyModel> _therapies = new();
+    private bool _loading = true, _showModal = false, _editing = false;
+    private string _err = string.Empty, _filter = "All";
+    private Guid _editId;
+    private TherapyCreateModel _form = new();
+    private List<string> _cats = new()
+    {
+        "All","Relaxation","Energetic","Mental","Physical","Spiritual"
+    };
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        _loading = true;
+        _therapies = await Http.GetFromJsonAsync<List<TherapyModel>>(
+            "api/therapies") ?? new();
+        _loading = false;
+    }
+
+    private IEnumerable<TherapyModel> Filtered =>
+        _filter == "All" ? _therapies : _therapies.Where(t => t.Category == _filter);
+
+    private void OpenModal()
+    {
+        _form = new(); _editing = false;
+        _err = string.Empty; _showModal = true;
+    }
+
+    private void OpenEdit(TherapyModel t)
+    {
+        _editId = t.Id;
+        _form = new()
+        {
+            Name = t.Name,
+            Description = t.Description,
+            DurationMinutes = t.DurationMinutes,
+            Price = t.Price,
+            Category = t.Category
+        };
+        _editing = true; _err = string.Empty; _showModal = true;
+    }
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(_form.Name) || _form.DurationMinutes <= 0)
+        { _err = "Name and duration are required."; return; }
+
+        HttpResponseMessage resp;
+        if (_editing)
+        {
+            var upd = new
+            {
+                Id = _editId,
+                _form.Name,
+                _form.Description,
+                _form.DurationMinutes,
+                _form.Price,
+                _form.Category
+            };
+            resp = await Http.PutAsJsonAsync($"api/therapies/{_editId}", upd);
+        }
+        else
+        {
+            resp = await Http.PostAsJsonAsync("api/therapies", _form);
+        }
+
+        if (resp.IsSuccessStatusCode) { _showModal = false; await Load(); }
+        else _err = "Error saving therapy.";
+    }
+
+    private async Task Delete(Guid id)
+    {
+        await Http.DeleteAsync($"api/therapies/{id}");
+        await Load();
+    }
+}

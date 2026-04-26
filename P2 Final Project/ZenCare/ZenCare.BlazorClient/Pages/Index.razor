@@ -1,0 +1,138 @@
+﻿@page "/"
+@inject HttpClient Http
+@using ZenCare.BlazorClient.Models
+@using System.Net.Http.Json
+
+<PageTitle>ZenCare – Dashboard</PageTitle>
+
+<h3 class="mb-4">
+    <i class="bi bi-speedometer2 me-2" style="color:var(--zen-primary)"></i>
+    Dashboard
+</h3>
+
+@if (_loading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border" style="color:var(--zen-primary)"></div>
+        <p class="mt-2 text-muted">Loading statistics...</p>
+    </div>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card"
+                 style="background:linear-gradient(135deg,#2e7d6b,#4caf9a)">
+                <div class="stat-icon"><i class="bi bi-people"></i></div>
+                <h2>@_totalPatients</h2>
+                <p>Registered Patients</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card"
+                 style="background:linear-gradient(135deg,#1565c0,#42a5f5)">
+                <div class="stat-icon"><i class="bi bi-person-badge"></i></div>
+                <h2>@_totalSpecialists</h2>
+                <p>Active Specialists</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card"
+                 style="background:linear-gradient(135deg,#6a1b9a,#ab47bc)">
+                <div class="stat-icon"><i class="bi bi-heart-pulse"></i></div>
+                <h2>@_totalTherapies</h2>
+                <p>Therapy Types</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card"
+                 style="background:linear-gradient(135deg,#e65100,#ff7043)">
+                <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+                <h2>@_todayCount</h2>
+                <p>Appointments Today</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="zen-card card mb-4">
+        <div class="zen-card-header">
+            <i class="bi bi-calendar-day me-2"></i>
+            Today's Appointments — @DateTime.Now.ToString("dddd, MMMM dd yyyy")
+        </div>
+        <div class="card-body p-0">
+            @if (_todayList.Any())
+            {
+                <table class="table zen-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Patient</th>
+                            <th>Specialist</th>
+                            <th>Therapy</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in _todayList)
+                        {
+                            <tr>
+                                <td><strong>@a.ScheduledAt.ToString("HH:mm")</strong></td>
+                                <td>@a.PatientName</td>
+                                <td>@a.SpecialistName</td>
+                                <td>@a.TherapyName</td>
+                                <td>
+                                    <span class="badge @Badge(a.StatusName)">
+                                        @a.StatusName
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-calendar-x" style="font-size:2rem"></i>
+                    <p class="mt-2">No appointments scheduled for today.</p>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private bool _loading = true;
+    private int _totalPatients = 0, _totalSpecialists = 0,
+                 _totalTherapies = 0, _todayCount = 0;
+    private List<AppointmentModel> _todayList = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var patients = await Http.GetFromJsonAsync<List<PatientModel>>("api/patients");
+            var specialists = await Http.GetFromJsonAsync<List<SpecialistModel>>("api/specialists");
+            var therapies = await Http.GetFromJsonAsync<List<TherapyModel>>("api/therapies");
+            var today = DateTime.Today.ToString("yyyy-MM-dd");
+            _todayList = await Http.GetFromJsonAsync<List<AppointmentModel>>(
+                                 $"api/appointments/date?date={today}") ?? new();
+
+            _totalPatients = patients?.Count ?? 0;
+            _totalSpecialists = specialists?.Count ?? 0;
+            _totalTherapies = therapies?.Count ?? 0;
+            _todayCount = _todayList.Count;
+        }
+        catch { }
+        finally { _loading = false; }
+    }
+
+    private static string Badge(string s) => s switch
+    {
+        "Pending" => "badge-pending",
+        "Confirmed" => "badge-confirmed",
+        "Completed" => "badge-completed",
+        "Cancelled" => "badge-cancelled",
+        _ => "bg-secondary"
+    };
+}

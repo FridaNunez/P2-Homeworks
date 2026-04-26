@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="ZenCare.API/ZenCare.API.csproj" />
+  <Project Path="ZenCare.Application/ZenCare.Application.csproj" />
+  <Project Path="ZenCare.BlazorClient/ZenCare.BlazorClient.csproj" Id="d697a533-5e81-4d9b-8a71-b4bef7a1996f" />
+  <Project Path="ZenCare.Domain/ZenCare.Domain.csproj" />
+  <Project Path="ZenCare.Infrastructure/ZenCare.Infrastructure.csproj" />
+</Solution>
